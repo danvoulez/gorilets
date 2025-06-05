@@ -1,0 +1,58 @@
+# config/logline.yml
+# Configuração global para LogLineOS
+
+llm:
+  provider: "mock" # ou "openai", "ollama"
+  openai:
+    api_key: "YOUR_OPENAI_API_KEY" # Substitua pela sua chave REAL se usar OpenAI
+    model: "gpt-3.5-turbo" # Exemplo: gpt-4o, gpt-3.5-turbo, etc.
+  ollama: # Exemplo de configuração para Ollama (se provider for "ollama")
+    base_url: "http://localhost:11434"
+    model: "llama3" # Exemplo: llama3, mistral
+
+hooks:
+  # Exemplo de hook global que roda após cada bloco, se for sucesso
+  on_block_success:
+    - name: "log_success"
+      type: "shell"
+      command: "echo"
+      args: ["LogLine Hook: Bloco {{.BlockID}} ({{.Type}}) SUCCESSO! Span: {{.SpanID}}"]
+  # Exemplo de hook global que roda após cada bloco, se falhar
+  on_block_error:
+    - name: "notify_error"
+      type: "shell"
+      command: "echo"
+      args: ["LogLine Hook: Bloco {{.BlockID}} ({{.Type}}) ERRO! Detalhes: {{.Error}}"]
+  # Exemplo de hook global que roda após cada bloco, se for pulado
+  on_block_skipped:
+    - name: "log_skipped"
+      type: "shell"
+      command: "echo"
+      args: ["LogLine Hook: Bloco {{.BlockID}} ({{.Type}}) PULADO! Razão: {{.Message}}"]
+  # Exemplo de hook global que roda no início do workflow
+  on_workflow_start:
+    - name: "log_workflow_start"
+      type: "shell"
+      command: "echo"
+      args: ["LogLine Hook: Workflow {{.WorkflowName}} INICIADO!"]
+  # Exemplo de hook global que roda no fim do workflow
+  on_workflow_end:
+    - name: "log_workflow_end"
+      type: "shell"
+      command: "echo"
+      args: ["LogLine Hook: Workflow {{.WorkflowName}} FINALIZADO com status: {{.Status}}!"]
+
+  # Exemplo de hook específico nomeado (usado no workflow llm_hook_workflow.logline)
+  my_specific_hook:
+    - name: "custom_process_shell"
+      type: "shell"
+      command: "echo"
+      args: ["Hook customizado 'my_specific_hook' disparado para bloco {{.BlockID}}!"]
+    # Removido exemplo HTTP para simplificar a dependência de um endpoint real para demo
+    # - name: "http_notification"
+    #   type: "http"
+    #   url: "http://localhost:8081/webhook/logline-hook" # Substitua pelo seu endpoint real para testar
+    #   method: "POST"
+    #   headers:
+    #     Content-Type: "application/json"
+    #   body: '{"event": "custom_hook_triggered", "block_id": "{{.BlockID}}", "status": "{{.Status}}", "span_id": "{{.SpanID}}"}'
