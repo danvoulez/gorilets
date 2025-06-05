@@ -1,0 +1,23 @@
+# Contrato-mãe do FlipApp/Minicontratos
+- contract: flipapp
+  who: system
+  did: iniciar_ambiente
+  payload:
+    descricao: "Ambiente institucional VoulezVous"
+    data_inicio: "2025-06-02"
+
+- contract: onboarding
+  who: cliente
+  did: enviar_mensagem
+  payload:
+    texto: "Bem-vindo ao sistema!"
+
+- did: registrar_presenca
+  who: cliente
+  when: "2025-06-02T09:00:00Z"
+  affair: onboarding
+
+- did: enviar_audio
+  payload:
+    duracao: 12
+    origem: whatsapp

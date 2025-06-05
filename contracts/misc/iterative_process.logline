@@ -1,0 +1,77 @@
+# workflow: iterative_process.logline
+# Descrição: Demonstra o uso de blocos 'loop' e 'await'.
+
+name: "Processo Iterativo e Sincronizado"
+description: "Um workflow que repete uma ação e aguarda por um evento externo."
+
+tasks:
+  - id: inicio_processo
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["Iniciando processo iterativo..."]
+
+  - id: loop_tentativas_api
+    type: loop
+    spec:
+      count: 3 # Tentar 3 vezes
+      # until: "external_service_status.output.available == true" # Outra opção de loop (descomentar para testar)
+      max_duration: "30s" # Garante que o loop não dure mais que 30 segundos
+    tasks: # Blocos aninhados dentro do loop
+      - id: chamar_api_externa
+        type: mechanical
+        spec:
+          command: "sh"
+          args: ["-c", "if (( RANDOM % 2 == 0 )); then echo 'API OK!'; else echo 'API FALHOU!'; exit 1; fi"] # 50% de chance de falhar
+        retry:
+          max_attempts: 2
+          initial_delay: "1s"
+          backoff_factor: 1.5
+        fallback:
+          type: cognitive
+          spec:
+            llm:
+              goal: "Sugira rota alternativa para API falha"
+              input: "A API 'chamar_api_externa' falhou. Gerar um plano de ação para o operador."
+              trust: "medium"
+            action_on_output: # Simplesmente loga o disparo aqui
+              trigger_block_id: "log_acao_sugerida"
+      - id: log_acao_sugerida # Este bloco seria o 'alvo' do action_on_output
+        type: mechanical
+        spec:
+          command: "echo"
+          args: ["Ação sugerida pela IA: {{.llm_output.output}}"] # O LLMOutput viria do action_on_output
+        when: "false" # Este bloco só é ativado por trigger_block_id, não roda em fluxo normal
+      - id: registrar_tentativa
+        type: register
+        spec:
+          entity: "log_tentativa_api"
+          id: "tentativa-{{.loop_iteration}}-{{.chamar_api_externa.status}}-{{.Timestamp | printf \"%.8s\"}}" # <-- NOVO: Usa variáveis de loop e histórico
+          data:
+            loop_id: "loop_tentativas_api"
+            iteration: "{{.loop_iteration}}" # <-- NOVO: Passa a iteração
+            status_api: "{{.chamar_api_externa.status}}" # <-- NOVO: Captura status da API
+            api_output: "{{.chamar_api_externa.output.stdout}}" # <-- NOVO: Captura output da API
+            api_error: "{{.chamar_api_externa.output.error_details}}" # <-- NOVO: Captura detalhes do erro
+        when: "true" # Sempre registra
+
+  - id: signal_external_process
+    type: mechanical
+    spec:
+      command: "sleep"
+      args: ["3s"] # Simula um trabalho que leva 3 segundos
+    when: "loop_tentativas_api.status == 'success'"
+
+  - id: esperar_processo_externo
+    type: await
+    spec:
+      task_id: "signal_external_process"
+      condition: "status == 'success'"
+      timeout: "10s"
+
+  - id: processo_finalizado
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["Processo iterativo e sincronizado concluído!"]
+    when: "esperar_processo_externo.status == 'success'"
