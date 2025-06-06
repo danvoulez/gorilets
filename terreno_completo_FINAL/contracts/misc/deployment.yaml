@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minicontratos-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: minicontratos
+  template:
+    metadata:
+      labels:
+        app: minicontratos
+    spec:
+      containers:
+        - name: minicontratos
+          image: myregistry/minicontratos:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret
+                  key: api_key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minicontratos-svc
+spec:
+  selector:
+    app: minicontratos
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

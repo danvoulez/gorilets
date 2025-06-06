@@ -1,0 +1,17 @@
+--- a/package.json
++++ b/package.json
+@@ -13,11 +13,6 @@
+     "build:wasm:release": "cd rust_vm && wasm-pack build --target web --release",
+     "validate:logline": "node scripts/validate-logline.js ui/",
+     "docker:build": "docker build -t flipapp .",
+-    "docker:run": "docker run -p 80:80 flipapp",
+-    "docker:compose": "docker-compose up",
+-    "clean": "rimraf dist/ public/wasm/"
+-  },
+-  "dependencies": {
++    "clean": "rimraf dist/ public/wasm/"
++  },
++  "dependencies": {
+     "dompurify": "3.0.6",
+     "markdown-it": "13.0.1"
+   },

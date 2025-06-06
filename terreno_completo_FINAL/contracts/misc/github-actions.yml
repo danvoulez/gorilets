@@ -1,0 +1,13 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Backend
+        run: cd backend && cargo build --release
+      - name: Build Frontend
+        run: cd frontend && ./build.sh
