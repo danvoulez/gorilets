@@ -1,0 +1,18 @@
+- id: "workflows.onboarding_user"
+  do:
+    - type: db.query
+      query: "SELECT * FROM users WHERE email = '{{email}}'"
+      target: "user"
+    - type: llm.gateway
+      input:
+        prompt: "Crie uma mensagem de boas-vindas para {{user.name}}"
+      target: "welcome_msg"
+    - type: messaging.email
+      to: "{{user.email}}"
+      subject: "Bem-vindo!"
+      body: "{{welcome_msg}}"
+    - type: ui.render
+      blocks:
+        - component: "div"
+          props:
+            text: "Onboarding concluído para {{user.email}}"

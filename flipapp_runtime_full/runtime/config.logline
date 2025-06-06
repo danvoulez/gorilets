@@ -1,0 +1,8 @@
+@@
+   {
+-    "key": "app_entry_point",
+-    "value": "/ui/flipapp_ui.logline",
++    "key": "app_entry_point",
++    "value": "/ui/whatsapp_ui.logline",
+     "description": "Main UI entry point file path"
+   },
