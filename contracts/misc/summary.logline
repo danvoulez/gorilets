@@ -1,0 +1,16 @@
+- id: "llm.summary"
+  do:
+    - type: llm.gateway
+      input:
+        prompt: "Resuma o contrato abaixo: {{contrato}}"
+        importance: "high"
+      props:
+        local_model: "mistral"
+        cloud_model: "gpt-4"
+        budget_usd: 0.10
+      target: "resumo"
+    - type: ui.render
+      blocks:
+        - component: "div"
+          props:
+            text: "Resumo gerado: {{resumo}}"

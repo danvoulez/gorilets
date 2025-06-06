@@ -1,6 +1,0 @@
-*.zip
-._*
-node_modules/
-dist/
-logline_state.db
-src/config/llm_cache.jsonl

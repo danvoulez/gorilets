@@ -1,0 +1,10 @@
+- id: "db.query_contracts"
+  do:
+    - type: db.query
+      query: "SELECT id, title, status FROM contracts WHERE tenant_id = '{{tenant_id}}'"
+      target: "contracts"
+    - type: ui.render
+      blocks:
+        - component: "table"
+          props:
+            class: "min-w-full bg-white shadow rounded-lg"

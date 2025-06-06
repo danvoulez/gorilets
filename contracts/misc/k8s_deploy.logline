@@ -1,0 +1,11 @@
+- id: "infra.k8s_deploy"
+  do:
+    - type: infra.k8s
+      action: "apply"
+      file: "deployment.yaml"
+      target: "k8s_result"
+    - type: ui.render
+      blocks:
+        - component: "div"
+          props:
+            text: "Resultado do deploy: {{k8s_result}}"

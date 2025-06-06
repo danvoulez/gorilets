@@ -1,0 +1,68 @@
+# workflow: llm_hook_workflow.logline
+# Descrição: Demonstra a integração com LLM e o sistema de hooks.
+
+name: "Processo com IA e Hooks"
+description: "Um workflow que usa inteligência artificial para resumir um texto e dispara hooks customizados."
+
+tasks:
+  - id: gerar_texto_para_ia
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["O LogLineOS é uma linguagem operacional de alto nível, desenhada para auditoria e rastreabilidade de processos. Cada bloco é um gesto organizacional auditável."]
+    hooks:
+      - "on_block_success" # Dispara hook global de sucesso
+      - "on_block_start"   # Dispara hook global de início
+      - "my_specific_hook" # Dispara um hook nomeado customizado (definido em logline.yml)
+
+  - id: resumir_texto_com_ia
+    type: cognitive
+    spec:
+      llm:
+        goal: "Resumir o texto sobre LogLineOS em uma frase curta, e classificar o sentimento como 'positivo' ou 'neutro' em formato JSON com campos 'summary' e 'sentiment'."
+        input: "Texto: O LogLineOS é uma linguagem operacional de alto nível, desenhada para auditoria e rastreabilidade de processos. Cada bloco é um gesto organizacional auditável. Ele permite simular, executar e auditar tudo. É uma ferramenta fantástica!"
+        trust: "high"
+        model: "gpt-3.5-turbo" # Pode sobrescrever o modelo padrão do logline.yml
+      action_on_output: # Ação baseada no output do LLM
+        trigger_block_id: "reagir_ao_sentimento_ia" # Bloco a ser disparado
+        condition: "llm_output.sentiment == 'positivo'" # Condição para disparar
+        map_output_to_input: # Mapeia campos do LLM output para input do bloco disparado
+          resumo: "{{.llm_output.summary}}"
+          sentimento: "{{.llm_output.sentiment}}"
+    when: "gerar_texto_para_ia.status == 'success'"
+    hooks:
+      - "on_block_success"
+      - "on_block_error"
+      - "my_specific_hook"
+
+  - id: reagir_ao_sentimento_ia # Bloco disparado pela ação cognitiva
+    type: mechanical
+    spec:
+      command: "echo"
+      # Para usar .resumo e .sentimento aqui, o executor precisaria injetar
+      # dinamicamente estes valores no 'spec' do bloco disparado antes da execução.
+      # Por enquanto, eles seriam parte do 'output' do span que disparou este.
+      args: ["IA reagiu! Saída LLM completa: {{.resumir_texto_com_ia.output.llm_output | json}}"] # <-- Exemplo que espera JSON
+    when: "false" # Este bloco só é ativado por trigger_block_id, não roda em fluxo normal
+    hooks:
+      - "on_block_success"
+
+  - id: registrar_resumo
+    type: register
+    spec:
+      entity: "resumo_ia"
+      id: "resumo_logline_ia"
+      data:
+        resumo_gerado: "{{.resumir_texto_com_ia.output.llm_output}}" # Este ainda pegaria a string bruta. Melhorar para JSON.
+        bloco_origem: "resumir_texto_com_ia"
+        timestamp_resumo: "{{.Timestamp}}"
+    when: "resumir_texto_com_ia.status == 'success'"
+    hooks:
+      - "on_block_success"
+
+  - id: finalizar_processo_ia
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["Processo com IA e hooks concluído!"]
+    when: "resumir_texto_com_ia.status == 'success' or registrar_resumo.status == 'success'"

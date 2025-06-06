@@ -1,0 +1,91 @@
+# workflow: onboarding_ana.logline
+# Descrição: Workflow de cadastro e formalização de uma nova performer.
+
+name: "Onboarding de Performer - Ana"
+description: "Registra nova pessoa, sua chegada, e finaliza o processo com um commit auditável."
+
+tasks:
+  - id: registrar_ana_performer
+    type: register
+    spec:
+      entity: "performer"
+      id: "ana_2025"
+      data:
+        nome_completo: "Ana Paula Silva"
+        email: "ana.paula@voulezvous.tv"
+        status_onboarding: "pendente_presenca"
+    hooks:
+      - "on_block_success" # Exemplo de hook específico para este bloco
+
+  - id: simular_comando_interno
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["Simulando um comando interno com sucesso!"]
+
+  - id: tentativa_de_conexao_falha
+    type: mechanical
+    spec:
+      command: "sh"
+      args: ["-c", "exit 1"] # <-- ESTE COMANDO IRÁ FALHAR!
+    retry:
+      max_attempts: 3
+      initial_delay: "500ms"
+      backoff_factor: 2.0
+    fallback:
+      type: cognitive
+      spec:
+        llm:
+          goal: "Analisar erro de conexão e sugerir alternativa humana."
+          input: "Falha ao conectar com o serviço X. Gerar um plano de ação para o operador."
+          trust: "medium"
+        action_on_output:
+          trigger_block_id: "notificar_operador_manual" # Este bloco será "disparado"
+          condition: "llm_output.confidence > 0.7" # Exemplo: disparar só se IA confia na sugestão
+    hooks:
+      - "on_block_error" # Disparar hook global de erro
+      - "on_block_fallback_success" # Disparar se o fallback for sucesso
+  
+  - id: notificar_operador_manual # Bloco alvo de action_on_output
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["Notificação do operador disparada! Sugestão da IA: {{.llm_output.output}}"]
+    when: "false" # Só é ativado via action_on_output, não em fluxo normal
+
+  - id: registrar_presenca_ana
+    type: affair
+    spec:
+      type: "presença"
+      from: "Dan"
+      to: "ana_2025"
+      note: "Ana chegou ao estúdio para o ensaio fotográfico inicial."
+      intensity: 95
+    when: "registrar_ana_performer.status == 'success'"
+
+  - id: verificar_documentacao_pendente
+    type: observe
+    spec:
+      source: "/vault/docs/ana_2025_contrato.pdf"
+      pattern: "ASSINATURA_OK|REVISAO_CONCLUIDA"
+      action:
+        type: "alert"
+        target: "legal@voulezvous.tv"
+        message: "Documentação de Ana (contrato) requer atenção: $(pattern) detectado em $(source)."
+    when: "registrar_presenca_ana.status == 'success'"
+
+  - id: selar_onboarding_performer
+    type: commit
+    spec:
+      goal: "Onboarding da Performer Ana concluído e formalizado."
+      inputs:
+        - "registrar_ana_performer"
+        - "registrar_presenca_ana"
+        - "verificar_documentacao_pendente"
+      signed_by:
+        - "Dan"
+        - "Departamento_RH_RH"
+      message: "Performer Ana Paula Silva foi registrada e sua presença formalizada. Contrato verificado. Pronta para iniciar atividades."
+    when: "verificar_documentacao_pendente.output.matched == true"
+    hooks:
+      - "on_block_success"

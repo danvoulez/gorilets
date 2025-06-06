@@ -1,0 +1,12 @@
+- id: "messaging.whatsapp_flow"
+  do:
+    - type: messaging.whatsapp
+      conversation_id: "{{conversation_id}}"
+      sender: "{{sender}}"
+      content: "{{content}}"
+      target: "whatsapp_result"
+    - type: ui.render
+      blocks:
+        - component: "div"
+          props:
+            text: "Mensagem enviada: {{whatsapp_result}}"
