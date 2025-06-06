@@ -1,0 +1,7 @@
+# Titulo: Funcoes Comuns
+# Proposito: Utilidades compartilhadas entre scripts LogLine
+# Execucao: incluído via include "common.logline"
+
+func now() {
+  return timestamp()
+}

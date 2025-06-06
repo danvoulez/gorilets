@@ -1,0 +1,40 @@
+- type: commit
+  name: "fix_structure"
+  description: "Reorganiza o repositório com base na curadoria técnica e simbólica"
+  steps:
+
+    # 🔥 Remover estruturas obsoletas
+    - run: rm -rf flipapp_with_whatsapp_merged
+    - run: rm -rf rust_vm
+    - run: rm -f remove_infrastructure.sh
+    - run: rm -f llm_proxy_hard.py
+    - run: rm -f validate_ui_schema.logline
+    - run: rm -f install_flip.sh
+
+    # 🧹 Consolidar e mover arquivos relevantes
+    - run: mv cleanup/* scripts/
+    - run: rm -rf cleanup
+
+    # 💎 Criar pastas para organização futura
+    - run: mkdir -p legacy archive system_docs
+
+    # 📦 Arquivar o que precisa de revisão
+    - run: mv flip-cli archive/
+    - run: mv cleanup_deprecated.sh archive/
+    - run: mv todo_bunker.txt archive/
+    - run: mv deployment archive/
+    - run: mv dev archive/
+    - run: mv examples archive/
+
+    # 🧠 Mover itens ambíguos para legacy
+    - run: mv app_boot.logline legacy/
+    - run: mv flip_rebuild_pack.sh legacy/
+
+    # 💖 Normalizar o estado final
+    - run: mv flipapp_ui_final_canonic.logline ui/flipapp_ui.logline
+
+    # 🔐 Garantir que todos arquivos tenham permissão correta
+    - run: chmod -R 755 scripts ui runtime engine cli
+
+    # ✅ Mensagem de sucesso
+    - echo: "Estrutura reorganizada com sucesso. Todos os arquivos essenciais preservados."

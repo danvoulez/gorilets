@@ -1,0 +1,29 @@
+- id: "ui.login"
+  do:
+    - type: ui.route
+      path: "/login"
+      title: "Login"
+    - type: ui.render
+      blocks:
+        - component: "form"
+          props:
+            class: "flex flex-col gap-4 max-w-sm mx-auto mt-20"
+            action: "/api/auth/login"
+            method: "POST"
+        - component: "input"
+          props:
+            type: "email"
+            name: "email"
+            placeholder: "E-mail"
+            class: "border p-2 rounded"
+        - component: "input"
+          props:
+            type: "password"
+            name: "senha"
+            placeholder: "Senha"
+            class: "border p-2 rounded"
+        - component: "button"
+          props:
+            type: "submit"
+            text: "Entrar"
+            class: "bg-blue-600 text-white px-4 py-2 rounded"

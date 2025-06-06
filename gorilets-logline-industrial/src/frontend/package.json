@@ -1,0 +1,11 @@
+{
+  "name": "gorilets-frontend",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite --clearScreen false",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

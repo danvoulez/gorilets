@@ -1,0 +1,12 @@
+- id: "auth.login_flow"
+  do:
+    - type: auth.login
+      input:
+        email: "{{email}}"
+        senha: "{{senha}}"
+      target: "login_result"
+    - type: ui.render
+      blocks:
+        - component: "div"
+          props:
+            text: "Resultado do login: {{login_result}}"

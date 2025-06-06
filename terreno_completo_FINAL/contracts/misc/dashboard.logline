@@ -1,0 +1,32 @@
+- id: "ui.dashboard"
+  do:
+    - type: ui.route
+      path: "/dashboard"
+      title: "Dashboard"
+    - type: ui.render
+      blocks:
+        - component: "h2"
+          props:
+            text: "Contratos Ativos"
+            class: "text-2xl font-bold mb-4"
+        - component: "table"
+          props:
+            class: "min-w-full bg-white shadow rounded-lg"
+        - component: "tbody"
+          children:
+            - component: "tr"
+              children:
+                - component: "td"
+                  props:
+                    text: "Contrato 1"
+                - component: "td"
+                  props:
+                    text: "Ativo"
+            - component: "tr"
+              children:
+                - component: "td"
+                  props:
+                    text: "Contrato 2"
+                - component: "td"
+                  props:
+                    text: "Ativo"

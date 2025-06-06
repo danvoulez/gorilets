@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint_and_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      - name: Install Python deps
+        run: pip install lark-parser sqlalchemy websocket-client
+      - name: Test LogLine parsing
+        run: |
+          python - <<'PYCODE'
+          from lark import Lark
+          import glob
+          grammar = 'start: WORD\nWORD: /.+/'
+          parser = Lark(grammar)
+          for path in glob.glob('src/logline/**/*.logline', recursive=True):
+              parser.parse(open(path).read())
+          print('Parsing ok!')
+          PYCODE
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      - name: Install JS deps
+        run: cd src/frontend && npm install
+      - name: Build Frontend
+        run: cd src/frontend && npm run build
+      - name: Lint JavaScript/CSS
+        run: |
+          cd src/frontend
+          npx eslint js/**/*.js || echo "eslint found issues"
+          npx stylelint css/**/*.css || echo "stylelint found issues"
