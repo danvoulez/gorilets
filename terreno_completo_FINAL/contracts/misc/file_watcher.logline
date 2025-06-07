@@ -1,0 +1,43 @@
+# workflow: file_watcher.logline
+# Descrição: Workflow para demonstrar o monitoramento contínuo de um arquivo ou webhook.
+
+name: "Monitor de Arquivo e Webhook"
+description: "Monitora um arquivo simulado e um endpoint de webhook para padrões específicos."
+
+tasks:
+  - id: monitorar_status_servico
+    type: observe
+    spec:
+      source: "/var/log/my_service_status.log" # Caminho simulado de um arquivo de log
+      pattern: "SERVICE_READY|ALL_OK" # Padrão que indica que o serviço está pronto
+      interval: "5s" # Verifica a cada 5 segundos
+      action:
+        type: "alert"
+        target: "ops@voulezvous.tv"
+        message: "Status de serviço alterado: $(pattern) detectado em $(source)."
+    hooks:
+      - "on_block_success"
+      - "on_block_error" # Se o monitor falhar (e.g. erro de leitura)
+
+  - id: receber_evento_deploy
+    type: observe
+    spec:
+      source: "https://api.example.com/deploy/status" # URL conceitual
+      pattern: "DEPLOY_COMPLETE|ROLLBACK_SUCCESS" # Padrão no corpo do webhook (ou query params)
+      on_event: "webhook" # Espera um evento de webhook
+      listen_path: "/webhooks/deploy-status" # O caminho que o servidor LogLine vai escutar
+      action:
+        type: "trigger"
+        target: "pos_deploy_action" # Bloco a ser disparado (abaixo)
+        message: "Evento de deploy recebido e processado!"
+    hooks:
+      - "on_block_success"
+
+  - id: pos_deploy_action # Bloco a ser disparado pelo webhook
+    type: mechanical
+    spec:
+      command: "echo"
+      args: ["Ação pós-deploy disparada! Evento: {{.receber_evento_deploy.output.raw_event_content | json}}"] # <-- Captura e mostra o payload do webhook
+    when: "false" # Este bloco só é ativado por trigger, não roda em fluxo normal
+    hooks:
+      - "on_block_success"

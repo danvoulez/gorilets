@@ -1,0 +1,15 @@
+# Titulo: frontend_runtime
+# Proposito: Inicializar frontend usando somente LogLine
+# Execucao: logline run src/logline/ui/frontend_runtime.logline
+
+step open_websocket {
+  url: "ws://localhost:8080"
+}
+
+step load_ui {
+  file: "ui_flip.logline"
+}
+
+workflow {
+  open_websocket -> load_ui
+}
